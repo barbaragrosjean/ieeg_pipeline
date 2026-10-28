@@ -11,7 +11,7 @@ import numpy as np
 from mne_bids import BIDSPath, write_raw_bids
 
 from setting import load_bids, load_data, load_ncs
-from setting import Session
+from setting import Session, save_data
 from preproc import bipolar_reference
 
 
@@ -215,6 +215,20 @@ class LoaderTests(unittest.TestCase):
             np.testing.assert_allclose(actual, expected, atol=1e-4)
         self.assertEqual([(e.segment, e.sample, e.code) for e in ncs.events if e.description == 'target'],
                          [(e.segment, e.sample, e.code) for e in bids.events if e.description == 'target'])
+
+    def test_save_loaded_ncs_metadata(self):
+        self.ncs()
+        config = self.config()
+        config.PARTICIPANT_ID = '01'
+        config.SESSION_ID = '01'
+        config.OUT_PATH = self.root / 'outs'
+        session, _ = load_ncs(config)
+        neural, info = save_data(session, config)
+        self.assertTrue(neural.exists())
+        import json
+        metadata = json.loads(info.read_text())
+        self.assertEqual(len(metadata['source_headers']), 2)
+        self.assertEqual(metadata['native_FS'], 1000)
 
     def test_shared_bipolar_interface(self):
         self.ncs()

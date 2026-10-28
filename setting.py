@@ -449,7 +449,11 @@ def _json_value(value):
         return str(value)
     if hasattr(value, 'isoformat'):
         return value.isoformat()
-    return value
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, bytes):
+        return value.decode('utf-8', errors='replace')
+    return str(value)  # e.g. Neo's parsed application Version
 
 
 def get_info(session, config):
@@ -486,6 +490,7 @@ def get_info(session, config):
         'space': session.metadata.get('coordinate_frame'),
         'coordinate_units': session.metadata.get('coordinate_units', 'm'),
         'preprocessing_steps': session.metadata.get('preprocessing_steps', []),
+        'processing_history': session.metadata.get('processing_history', []),
         'filter_parameters': session.metadata.get('filter_parameters'),
         'excluded_channels': session.metadata.get('excluded_channels', []),
         'flagged_channels': session.bad_channels,

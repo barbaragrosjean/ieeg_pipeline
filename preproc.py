@@ -309,6 +309,7 @@ def run_preprocess(config, session=None, *, save=True):
             raise FileExistsError(f'Output already exists in {destination}')
     outputs = []
     for step in steps:
+        input_rate = session.sfreq
         result = handlers[step](session, config)
         if step == 'bipolar_reference':
             session, mapping, unpaired = result
@@ -318,6 +319,9 @@ def run_preprocess(config, session=None, *, save=True):
         else:
             session = result
         session.metadata.setdefault('preprocessing_steps', []).append(step)
+        session.metadata.setdefault('processing_history', []).append({
+            'step': step, 'input_FS': input_rate, 'output_FS': session.sfreq,
+            'parameters': deepcopy(session.metadata.get('filter_parameters')) if step == 'preprocess' else None})
         outputs.append((step, result))
     if save:
         save_data(session, config)
