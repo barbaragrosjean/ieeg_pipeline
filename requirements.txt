@@ -1,0 +1,6 @@
+numpy>=1.26
+scipy>=1.11
+matplotlib>=3.8
+mne>=1.10
+mne-bids>=0.20
+neo>=0.14.6
